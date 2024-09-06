@@ -1,0 +1,78 @@
+import tensorflow as tf
+from tensorflow.keras import datasets, layers, models
+import matplotlib.pyplot as plt
+
+# Load the MNIST dataset
+(train_images, train_labels), (test_images, test_labels) = datasets.mnist.load_data()
+
+# Normalize the images to the range [0, 1]
+train_images, test_images = train_images / 255.0, test_images / 255.0
+
+# Reshape the images to include the channel dimension (1 for grayscale)
+train_images = train_images.reshape((train_images.shape[0], 28, 28, 1))
+test_images = test_images.reshape((test_images.shape[0], 28, 28, 1))
+#Build the cnn model
+model = models.Sequential()
+model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+
+model.add(layers.Flatten())
+model.add(layers.Dense(64, activation='relu'))
+model.add(layers.Dense(10, activation='softmax'))
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+history = model.fit(train_images, train_labels, epochs=5, 
+                    validation_data=(test_images, test_labels))
+test_loss, test_acc = model.evaluate(test_images, test_labels)
+print(f"Test accuracy: {test_acc:.4f}")
+
+# Plot training and validation accuracy
+plt.plot(history.history['accuracy'], label='accuracy')
+plt.plot(history.history['val_accuracy'], label = 'val_accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.ylim([0.5, 1])
+plt.legend(loc='lower right')
+plt.show()
+pip install opencv-python
+pip install opencv-python
+import cv2
+import numpy as np
+# Function to preprocess the image
+def preprocess_image(image_path):
+    # Read the image
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    # Resize the image to 28x28 pixels
+    img = cv2.resize(img, (28, 28))
+    # Normalize the image
+    img = img / 255.0
+    # Reshape the image to match the input shape of the model
+    img = img.reshape(1, 28, 28, 1)
+    return img
+
+# Function to predict the character
+def predict_character(model, image_path):
+    # Preprocess the image
+    img = preprocess_image(image_path)
+    # Make a prediction
+    prediction = model.predict(img)
+    # Get the index of the highest probability
+    predicted_class = np.argmax(prediction)
+    return predicted_class
+
+# Path to the image to be recognized
+image_path = r'E:\summa\archive (2)\MY_data\predict\22.jpeg'  # Replace this with your image file path
+
+# Predict the character
+predicted_character = predict_character(model, image_path)
+print(f"Predicted Character: {predicted_character}")
+
+# Visualize the input image
+img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+plt.imshow(img, cmap='gray')
+plt.title(f"Predicted Character: {predicted_character}")
+plt.show()
